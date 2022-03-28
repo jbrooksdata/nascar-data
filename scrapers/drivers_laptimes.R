@@ -14,17 +14,12 @@ laps <- drivers$Laps
 
 # max num of drivers per race
 ## this will need to be edited for races with < 40
-finish <- 1:40
+finish <- 1:nrow(drivers)
 
-# driver list dataframe loop
-driverlist <- data.frame()
-
-for(i in finish){
-  
-  name <- drivers[i,2]
-  
-  driverlist <- rbind(driverlist,name)
-}
+# create driver list; remove special characters (rookie designation, etc.)
+driverlist <- gsub("\\s*\\([^\\)]+\\)","",
+              gsub(" #","",
+              gsub("\\* ","",drivers$FullName)))
 
 # lap times dataframe loop
 timeslist <- data.frame()
@@ -37,3 +32,10 @@ for(x in finish){
   # bind_rows instead of rbind to ignore column lengths (DNF, laps down, etc.)
   timeslist <- bind_rows(timeslist,conv2cols)
 }
+
+
+lapchart <- bind_cols(driverlist,timeslist)
+# rename rows 1:n=drivers in race
+rownames(lapchart) <- c(1:nrow(drivers))
+# first column will otherwise be a driver's name
+names(lapchart)[1] <- "driver"
