@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 
 # feb 20 daytona 500 - id: 5146
-## some laps are missing from source
+## some laps may be missing from source
 url_json <- "https://cf.nascar.com/cacher/2022/1/5146/lap-times.json"
 raw_json <- fromJSON(url_json)
 
