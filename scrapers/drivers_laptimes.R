@@ -12,8 +12,7 @@ raw_json <- fromJSON(url_json)
 drivers <- raw_json$laps
 laps <- drivers$Laps
 
-# max num of drivers per race
-## this will need to be edited for races with < 40
+# end timeslist loop at max number of drivers per race
 finish <- 1:nrow(drivers)
 
 # create driver list; remove special characters (rookie designation, etc.)
