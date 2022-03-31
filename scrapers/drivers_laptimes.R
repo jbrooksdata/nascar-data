@@ -1,8 +1,5 @@
 library(jsonlite)
-library(webshot)
-library(data.table)
 library(dplyr)
-library(tidyr)
 
 # feb 20 daytona 500 - id: 5146
 ## some laps may be missing from source
