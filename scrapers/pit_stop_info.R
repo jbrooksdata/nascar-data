@@ -1,34 +1,51 @@
-# feb 20 daytona 500 - id: 5146
-## some laps are missing from source
 library(jsonlite)
 library(dplyr)
 
-url_json <- "https://cf.nascar.com/live/feeds/series_1/5146/live_feed.json"
-raw_json <- fromJSON(url_json)
+race_ids <- list("5146","5147","5148","5149","5150","5151","5152")
 
-df <- raw_json$vehicles
+compile_stops <- data.frame()
 
-finish <- 1:nrow(raw_json$vehicles$driver)
-
-driver_stops <- data.frame()
-
-for(x in finish){
+for(i in race_ids){
+  url_json <- paste0("https://cf.nascar.com/live/feeds/series_1/",i,"/live_feed.json")
+  raw_json <- fromJSON(url_json)
   
-  indiv_stops <- bind_cols(df$driver$full_name[x],df$pit_stops[x])
+  df <- raw_json$vehicles
   
-  driver_stops <- bind_rows(driver_stops,indiv_stops)
+  finish <- 1:nrow(raw_json$vehicles$driver)
   
+  driver_stops <- data.frame()
+  
+  for(x in finish){
+    
+    # bind driver name to each of their pit stops
+    indiv_stops <- bind_cols(df$driver$full_name[x],
+                             raw_json$run_name,
+                             df$pit_stops[x])
+    
+    # bind number of laps remaining in race - useful for visualization
+    add_remlaps <- bind_cols(indiv_stops,(raw_json$laps_in_race - indiv_stops$pit_in_lap_count))
+    
+    driver_stops <- bind_rows(driver_stops,add_remlaps)
+    
+    
+  }
+  
+  compile_stops <- bind_rows(compile_stops,driver_stops)
   
 }
 
-names(driver_stops)[1] <- "driver"
+# rename "..." columns
+names(compile_stops)[1] <- "driver"
+names(compile_stops)[2] <- "race"
+names(compile_stops)[10] <- "laps_remaining"
 
-driver_stops$driver <- gsub("\\s*\\([^\\)]+\\)","",
-                       gsub(" #","",
-                       gsub("\\* ","",driver_stops$driver)))
+# gsub to remove special characters from driver names
+compile_stops$driver <- gsub("\\s*\\([^\\)]+\\)","",
+                             gsub(" #","",
+                                  gsub("\\* ","",compile_stops$driver)))
 
 # only show "active" stops - not driver's end of race
-delete_zero <- driver_stops[!(driver_stops$pit_stop_duration == 0),]
+delete_zero <- compile_stops[!(compile_stops$pit_stop_duration == 0),]
 
 # drop "position change" - it is all zero
-delete_zero <- subset(delete_zero, select = -c(2))
+delete_zero <- subset(delete_zero, select = -c(3))
